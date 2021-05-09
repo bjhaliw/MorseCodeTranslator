@@ -18,4 +18,5 @@ If you need to quickly transfer back and forth between Morse Code and English. A
 
 ## Speed
 Ambiguous Morse Code decoding can be a lengthy process if the input is large. Please give time for it to fully decode.
+- Example: .-.---..---......-..-.-- which results in the word ROUGHLY has 3,065,197 other possible Morse Code combinations
 
