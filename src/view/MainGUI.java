@@ -8,13 +8,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.*;
 import javafx.scene.control.TextField;
 import javafx.scene.text.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.scene.control.*;
 import model.MorseCode;
@@ -23,10 +21,12 @@ import model.Translator;
 @SuppressWarnings("restriction")
 public class MainGUI extends Application {
 
-	Translator translator;
+	private Translator translator;
+	private CustomizationScreen customScreen;
 
 	public MainGUI() {
 		this.translator = new Translator();
+		this.customScreen = new CustomizationScreen();
 	}
 
 	@Override
@@ -55,21 +55,24 @@ public class MainGUI extends Application {
 		ToggleGroup tg = new ToggleGroup();
 		tg.getToggles().addAll(englishToMorse, morseToEnglish, ambiguousMorse);
 
-		HBox buttonBox = new HBox(10);
-		buttonBox.setAlignment(Pos.CENTER);
+		HBox buttonBox = new HBox(10); // Will hold the Buttons to use translation services
+		buttonBox.setAlignment(Pos.CENTER); // Set alignment of box to be centered
 
-		Button goButton = new Button("Go!");
-		Button clearButton = new Button("Clear");
-		Button spacesButton = new Button("Remove Spaces");
+		Button goButton = new Button("Translate"); // Button to start the translation
+		goButton.setPrefWidth(125); // Set preferred width of Button to 125 pixels
+		Button clearButton = new Button("Clear Areas"); // Button to clear TextField and TextArea
+		clearButton.setPrefWidth(125); // Set preferred width of Button to 125 pixels
+		Button spacesButton = new Button("Remove Spaces"); // Button to remove spaces from TextField
+		spacesButton.setPrefWidth(125); // Set preferred width of Button to 125 pixels
 
 		buttonBox.getChildren().addAll(goButton, clearButton, spacesButton);
 
-		TextArea resultArea = new TextArea();
-		resultArea.setFont(Font.font(20));
-		resultArea.setEditable(false);
-		resultArea.setWrapText(true);
+		TextArea resultArea = new TextArea(); // Where results of translation will show
+		resultArea.setFont(Font.font(20)); // Increase font size of TextArea
+		resultArea.setEditable(false); // Don't allow user to manipulate the TextArea
+		resultArea.setWrapText(true); // Allow TextArea to word wrap so user doesn't have to scroll
 
-		goButton.setOnAction(e -> {
+		goButton.setOnAction(e -> { // Initiate translation
 			RadioButton selectedButton = (RadioButton) tg.getSelectedToggle();
 			if (selectedButton.getText().equals("English to Morse Code")) {
 				resultArea.setText(translator.englishToMorse(inputField.getText()));
@@ -80,13 +83,13 @@ public class MainGUI extends Application {
 			}
 		});
 
-		clearButton.setOnAction(e -> {
+		clearButton.setOnAction(e -> { // Clears the TextField and the TextArea
 			inputField.setText("");
 			resultArea.setText("");
 		});
 
-		spacesButton.setOnAction(e -> {
-			inputField.setText(inputField.getText().replace(" ", ""));
+		spacesButton.setOnAction(e -> { // Button click to remove spaces from TextField
+			inputField.setText(inputField.getText().replace(" ", "")); // Replaces spaces with blank characters
 		});
 
 		HBox customBox = new HBox(10);
@@ -95,42 +98,50 @@ public class MainGUI extends Application {
 		customBox.getChildren().addAll(customButton);
 
 		root.getChildren().addAll(title, createButtonPane(inputField), inputField, tgBox, buttonBox, resultArea,
-				customBox);
-		Scene scene = new Scene(root);
+				customBox); // Add all child Nodes to the main VBox
+		Scene scene = new Scene(root); // Create the scene by loading the main VBox
 
-		customButton.setOnAction(e -> {
-			CustomizationScreen.launchCustomizationScreen(scene);
+		customButton.setOnAction(e -> { // Selecting the Customize Button at the bottom of the screen
+			customScreen.launchCustomizationScreen(scene); // Launch customization screen
 		});
 
-		primaryStage.setTitle("Morse Code Translator");
-		primaryStage.setScene(scene);
-		primaryStage.show();
-		primaryStage.setOnCloseRequest(e -> System.exit(0));
+		primaryStage.setTitle("Morse Code Translator"); // Create the title for the window
+		primaryStage.setScene(scene); // Setting the screen for the window
+		primaryStage.show(); // Show the window on the screen
+		primaryStage.setOnCloseRequest(e -> System.exit(0)); // Terminate if main window is closed
 	}
 
+	/**
+	 * Create the Buttons for the upper portion of the GUI. Allows the user to
+	 * select Morse Code characters by hitting each Button. Text will be displayed
+	 * in the supplied TextField
+	 * 
+	 * @param entry - TextField to display Morse Code characters
+	 * @return GridPane containing Buttons for Morse Code
+	 */
 	private GridPane createButtonPane(TextField entry) {
-		GridPane pane = new GridPane();
-		pane.setAlignment(Pos.CENTER);
-		pane.setHgap(10);
-		pane.setVgap(10);
+		GridPane pane = new GridPane(); // Create GridPane to hold Morse Code buttons
+		pane.setAlignment(Pos.CENTER); // Center the GridPAne
+		pane.setHgap(10); // Horizontal gap of 10 pixels
+		pane.setVgap(10); // Vertical gap of 10 pixels
 
-		ArrayList<Button> buttons = new ArrayList<>();
+		ArrayList<Button> buttons = new ArrayList<>(); // List containing all buttons A-Z
 
 		for (MorseCode code : MorseCode.values()) {
-			Button button = new Button(code.getLetter() + ":  " + code.getCode());
-			button.setAlignment(Pos.CENTER);
-			button.setPrefSize(100, 100);
-			button.setFont(Font.font(20));
-			button.setOnAction(e -> {
+			Button button = new Button(code.getLetter() + ":  " + code.getCode()); // Create button
+			button.setAlignment(Pos.CENTER); // Center text of button
+			button.setPrefSize(100, 100); // Set preferred size of button to be 100 x 100 pixels
+			button.setFont(Font.font(20)); // Increase font size of button to 20 pixels
+			button.setOnAction(e -> { // If button is pressed, display its Morse Code to TextField
 				entry.setText(entry.getText() + " " + code.getCode());
 			});
 
-			buttons.add(button);
+			buttons.add(button); // Add the button to the list of all buttons
 		}
 
-		int row = 0;
-		int col = 0;
-		int counter = 0;
+		int row = 0; // Keep track of which row we're on
+		int col = 0; // Keep track of which column we're on
+		int counter = 0; // Get the desired button from button list
 
 		while (counter < 26) {
 			pane.add(buttons.get(counter), col, row);
@@ -142,7 +153,7 @@ public class MainGUI extends Application {
 			}
 		}
 
-		return pane;
+		return pane; // Return the finished GridPane containing all buttons
 	}
 
 	public static void main(String[] args) {

@@ -1,0 +1,9 @@
+Default
+Red
+Blue
+Yellow
+Green
+Purple
+Black
+Pink
+Maroon

@@ -2,6 +2,8 @@ package view;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javafx.geometry.Insets;
@@ -20,7 +22,14 @@ import javafx.stage.Stage;
 @SuppressWarnings("restriction")
 public class CustomizationScreen {
 
-	public static void launchCustomizationScreen(Scene scene) {
+	private ComboBox<String> cb;
+
+	public CustomizationScreen() {
+		this.cb = new ComboBox<>();
+		loadInitialComboBox();
+	}
+
+	public void launchCustomizationScreen(Scene scene) {
 		Stage stage = new Stage();
 
 		VBox box = new VBox(10);
@@ -42,15 +51,26 @@ public class CustomizationScreen {
 		Label colorBoxLabel = new Label("Select desired background color");
 		colorBoxLabel.setFont(Font.font(20));
 
-		ComboBox<String> cb = new ComboBox<>();
-
 		colorField.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER) {
-				startCustomization(scene, cb, colorField);
+				startCustomization(scene, colorField);
 			}
 		});
 
-		box.getChildren().addAll(title, colorFieldLabel, colorField, sep, colorBoxLabel, cb);
+		cb.setOnAction(e -> {
+			String selected = cb.getSelectionModel().getSelectedItem();
+
+			if (selected.equals("Default")) {
+				scene.getRoot().setStyle("");
+				colorField.setText("");
+			} else {
+				scene.getRoot().setStyle("-fx-base: " + selected);
+				colorField.setText(selected);
+			}
+
+		});
+
+		box.getChildren().addAll(title, colorFieldLabel, colorField, sep, colorBoxLabel, this.cb);
 
 		stage.setScene(new Scene(box));
 		stage.setTitle("Customization Screen");
@@ -58,21 +78,23 @@ public class CustomizationScreen {
 
 	}
 
-	private static void startCustomization(Scene scene, ComboBox<String> cb, TextField colorField) {
+	private void startCustomization(Scene scene, TextField colorField) {
+		String text = colorField.getText().replaceAll(" ", "");; // Trim and have only one space
 
-		String text = colorField.getText().replaceAll(" ", "");
-		text = text.substring(0, 1).toUpperCase() + text.substring(1, text.length());
-
-		if (text.equalsIgnoreCase("default")) {
+		if (text.equals("") || text.equalsIgnoreCase("default")) {
 			scene.getRoot().setStyle("");
+			this.cb.getSelectionModel().select("Default");
 		} else {
-
+			text = text.substring(0, 1).toUpperCase() + text.substring(1, text.length());
 			try {
 				Color color = Color.valueOf(text); // Check if a color exists
-				scene.getRoot().setStyle("-fx-base: " + text);
-				if (!cb.getItems().contains(text)) {
-					cb.getItems().add(text);
+				if (!checkColorLoaded(text)) {
+					this.cb.getItems().add(text);
 				}
+				
+				this.cb.getSelectionModel().select(text);
+				
+				scene.getRoot().setStyle("-fx-base: " + text);
 			} catch (IllegalArgumentException e) {
 				System.out.println("Not a valid color");
 			}
@@ -81,17 +103,41 @@ public class CustomizationScreen {
 
 	}
 	
-	private static void loadComboBox(ComboBox<String> cb) {
-		File file = new File(System.getProperty("user.dir") + "//colors.txt");
-		try {
-			Scanner scanner = new Scanner(file);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+	private boolean checkColorLoaded(String string) {
+		for(String curr : cb.getItems()) {
+			if (curr.equalsIgnoreCase(string)) {
+				return true;
+			}
 		}
-	}
-	
-	private static void loadInitialComboBox(ComboBox<String> cb) {
-		
+		return false;
 	}
 
+	/**
+	 * The initial load of the ComboBox. First attempts to open and read the File
+	 * object that is in the user's directory if it exists. If it doesn't, then
+	 * loads the default list located in the source folder.
+	 * 
+	 * @param cb
+	 */
+	private void loadInitialComboBox() {
+		File file = new File(System.getProperty("user.dir") + "//colors.txt");
+		Scanner scanner;
+		try {
+			scanner = new Scanner(file);
+			while (scanner.hasNextLine()) {
+				String color = scanner.nextLine();
+				this.cb.getItems().add(color);
+
+			}
+		} catch (FileNotFoundException e) {
+			InputStream is = getClass().getResourceAsStream("/colors.txt");
+			scanner = new Scanner(is);
+			while (scanner.hasNextLine()) {
+				String color = scanner.nextLine();
+				this.cb.getItems().add(color);
+			}
+		}
+
+		scanner.close();
+	}
 }
